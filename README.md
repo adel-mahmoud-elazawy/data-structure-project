@@ -1,17 +1,102 @@
-# Decision Support System using Binary Tree in C
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-## 📝 Problem Statement
-هذا المشروع مجرد **مثال تعليمي** يوضح كيفية استخدام **شجرة ثنائية (Binary Tree)** في حل مشكلة بسيطة.  
-المثال المستخدم هنا هو: برنامج يساعد المستخدم في اتخاذ قرار عن نوع الجهاز المناسب له (Laptop, iPad, Desktop, Gaming Device … إلخ).  
-البرنامج يسأل المستخدم مجموعة من الأسئلة (Yes/No)، وعلى حسب الإجابات يتحرك في الشجرة حتى يصل إلى قرار نهائي.  
-إذن الهدف ليس فعليًا اختيار جهاز، بل **إظهار قوة الشجرة الثنائية في تمثيل القرارات**.
+// تعريف هيكل الـ Node
+struct Node {
+    char question[200];   // النص (سؤال أو قرار)
+    struct Node* yes;     // الفرع لو الإجابة Yes
+    struct Node* no;      // الفرع لو الإجابة No
+};
 
----
+// دالة لإنشاء Node جديد
+struct Node* createNode(char* question) {
+    struct Node* newNode = (struct Node*)malloc(sizeof(struct Node));
+    if (newNode == NULL) {
+        printf("Memory allocation failed!\n");
+        exit(1);
+    }
+    strcpy(newNode->question, question);
+    newNode->yes = NULL;
+    newNode->no = NULL;
+    return newNode;
+}
 
-## 🏗️ Data Structure Used and Justification
-- **Data Structure:** Binary Tree  
-- **Justification:**  
-  - كل سؤال له إجابتين محتملتين (Yes أو No).  
-  - الشجرة الثنائية مناسبة جدًا لأنها تسمح بفرعين فقط لكل عقدة (Node).  
-  - هذا يجعلها مثالية لتمثيل "شجرة قرارات" مثل المثال المستخدم.  
+// دالة لتشغيل الشجرة
+void runTree(struct Node* root) {
+    struct Node* current = root;
+    char answer[10];
 
+    while (current->yes != NULL || current->no != NULL) {
+        printf("%s (y/n): ", current->question);
+        fgets(answer, sizeof(answer), stdin);
+
+        if (answer[0] == 'y' || answer[0] == 'Y') {
+            current = current->yes;
+        } else {
+            current = current->no;
+        }
+    }
+
+    // النتيجة النهائية
+    printf("Final decision: %s\n", current->question);
+}
+
+// دالة لتحرير الذاكرة
+void freeTree(struct Node* root) {
+    if (root == NULL) return;
+    freeTree(root->yes);
+    freeTree(root->no);
+    free(root);
+}
+
+int main() {
+    // بناء الشجرة
+    struct Node* root = createNode("Do you have a big budget?");
+
+    root->yes = createNode("Are you a university student?");
+    root->no = createNode("Do you need a device for entertainment?");
+
+    // لو طالب جامعة
+    root->yes->yes = createNode("Are you in medical college?");
+    root->yes->no  = createNode("Decision: Buy a simple desktop");
+
+    // فرع الكلية الطبية
+    root->yes->yes->yes = createNode("Decision: Buy an iPad (great for notes and portability)");
+    root->yes->yes->no  = createNode("Are you in engineering college?");
+
+    // فرع كلية الهندسة
+    root->yes->yes->no->yes = createNode("Decision: Buy a powerful Laptop (needed for design and software)");
+    root->yes->yes->no->no  = createNode("Are you in practical/science college?");
+
+    // فرع كلية عملية/علمية
+    root->yes->yes->no->no->yes = createNode("Decision: Buy a Laptop (best for lab reports and research)");
+    root->yes->yes->no->no->no  = createNode("Are you in business/management college?");
+
+    // فرع كلية إدارة/Business
+    root->yes->yes->no->no->no->yes = createNode("Decision: Buy a MacBook (stylish and reliable for presentations)");
+    root->yes->yes->no->no->no->no  = createNode("Are you studying computer science?");
+
+    // فرع Computer Science
+    root->yes->yes->no->no->no->no->yes = createNode("Decision: Buy a powerful Windows Laptop (best for coding and development)");
+    root->yes->yes->no->no->no->no->no  = createNode("Do you work in design/graphics?");
+
+    // فرع Design/Graphics
+    root->yes->yes->no->no->no->no->no->yes = createNode("Decision: Buy a MacBook Pro (strong for design software)");
+    root->yes->yes->no->no->no->no->no->no  = createNode("Decision: Buy a desktop (basic use)");
+
+    // فرع الترفيه
+    root->no->yes = createNode("Do you want portable gaming?");
+    root->no->no  = createNode("Decision: Use your current phone");
+
+    root->no->yes->yes = createNode("Decision: Buy a Gaming Laptop");
+    root->no->yes->no  = createNode("Decision: Buy a PlayStation/Xbox");
+
+    // تشغيل البرنامج
+    runTree(root);
+
+    // تحرير الذاكرة
+    freeTree(root);
+
+    return 0;
+}
